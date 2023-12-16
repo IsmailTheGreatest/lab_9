@@ -1,11 +1,10 @@
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart' as pth;
-import 'dart:async';
 
 class DBHelper {
   static Database? _db;
 
-  Future<Database> get db async {
+  Future<Database> get database async {
     if (_db != null) {
       return _db!;
     }
@@ -13,35 +12,40 @@ class DBHelper {
     return _db!;
   }
 
-  initDatabase() async {
+  Future<Database> initDatabase() async {
     var databasesPath = await getDatabasesPath();
     String path = pth.join(databasesPath, 'user.db');
-    var db = await openDatabase(path, version: 1, onCreate: _onCreate);
-    return db;
+    return openDatabase(path, version: 1, onCreate: _onCreate);
   }
 
-  _onCreate(Database db, int version) async {
-    await db.execute('CREATE TABLE user (id INTEGER PRIMARY KEY, username TEXT, password TEXT, phone TEXT, email TEXT, address TEXT)');
+  Future<void> _onCreate(Database db, int version) async {
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS user (
+        id INTEGER PRIMARY KEY,
+        username TEXT,
+        password TEXT,
+        phone TEXT,
+        email TEXT,
+        address TEXT
+      )
+    ''');
   }
 
   Future<int> saveUser(User user) async {
-    var dbClient = await db;
-    return await dbClient.insert('user', user.toMap());
+    var dbClient = await database;
+    return dbClient.insert('user', user.toMap());
   }
 
-  //test read
-  Future<void> test_read(String db_name) async {
-    // Get a location using getDatabasesPath
-    var databasesPath = await getDatabasesPath();
-    String path = pth.join(databasesPath, db_name);
-
-    // open the database
-    Database database = await openDatabase(path, version: 1);
-
-    // Get the records for the table named user which we should have created above
-    List<Map> list = await database.rawQuery('SELECT * FROM user');
-    print(list);
+  Future<List<User>> getAllUsers(String dd) async {
+    var dbClient = await database;
+    List<Map<String, dynamic>> userList = await dbClient.query('user');
+    return userList.map((json) => User.fromJson(json)).toList();
   }
+
+
+
+
+
 
 }
 
@@ -53,17 +57,34 @@ class User {
   String email;
   String address;
 
-  User(this.id, this.username, this.password, this.phone, this.email, this.address);
+  User({
+    this.id,
+    required this.username,
+    required this.password,
+    required this.phone,
+    required this.email,
+    required this.address,
+  });
+
+  factory User.fromJson(Map<String, dynamic> json) {
+    return User(
+      id: json['id'] as int?,
+      username: json['username'] ,
+      password: json['password'] ,
+      phone: json['phone'] ,
+      email: json['email'] ,
+      address: json['address'] ,
+    );
+  }
 
   Map<String, dynamic> toMap() {
-    var map = <String, dynamic>{
+    return {
       'id': id,
       'username': username,
       'password': password,
       'phone': phone,
       'email': email,
-      'address': address
+      'address': address,
     };
-    return map;
   }
 }

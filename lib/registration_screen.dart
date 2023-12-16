@@ -1,6 +1,8 @@
+import 'dart:ffi';
+
 import 'package:flutter/material.dart';
 import 'db_helper.dart';
-
+import 'main_screen.dart';
 
 class RegistrationScreen extends StatefulWidget {
   const RegistrationScreen({super.key});
@@ -122,12 +124,12 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                   if (_formKey.currentState!.validate()) {
                     // Create a User object from the input data
                     User user = User(
-                      null,
-                      _usernameController.text,
-                      _passwordController.text,
-                      _phoneController.text,
-                      _emailController.text,
-                      _addressController.text,
+                     id: null,
+                     username: _usernameController.text,
+                      password: _passwordController.text,
+                      phone: _phoneController.text,
+                      email: _emailController.text,
+                      address: _addressController.text,
                     );
 
                     // Save the user data to the database
@@ -136,7 +138,9 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
 
                     // Show a success message
                     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('User data saved')));
-                    await dbHelper.test_read('user.db');
+                    Navigator.push(context, MaterialPageRoute(builder: (context)=> main_screen()));
+
+
                   }
                 },
                 child: const Text('Submit'),
